@@ -1,0 +1,48 @@
+{
+    "themes": [
+        {
+            "title": "Administratif",
+            "pathname": "ADMINISTRATIF",
+            "layers": [
+                {
+                    "name": "Arrondissements",
+                    "filename": "ARRONDISSEMENT"
+                },
+                {
+                    "name": "Collectivités territoriales",
+                    "filename": "COLLECTIVITE_TERRITORIALE"
+                },
+                {
+                    "name": "Communes",
+                    "filename": "COMMUNE"
+                },
+                {
+                    "name": "Communes associées ou déléguées",
+                    "filename": "COMMUNE_ASSOCIEE_OU_DELEGUEE"
+                },
+                {
+                    "name": "Départements",
+                    "filename": "DEPARTEMENT"
+                },
+                {
+                    "name": "EPCI",
+                    "filename": "EPCI"
+                },
+                {
+                    "name": "Régions",
+                    "filename": "REGION"
+                }
+            ]
+        },
+        {
+            "title": "Adresses",
+            "pathname": "ADRESSES",
+            "layers": [
+                {
+                    "name": "Adresses",
+                    "filename": "ADRESSE"
+                }
+            ]
+        }
+    ]
+}

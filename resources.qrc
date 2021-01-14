@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/bdtopo_importer" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
