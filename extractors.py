@@ -16,8 +16,8 @@ class ProgramNotFoundError(Exception):
     pass
 
 
-filter_pattern = re.compile(r'BDTOPO_\d-\d_TOUSTHEMES_SHP_LAMB93_[DR]\d+_\d{4}-\d\d-\d\d/BDTOPO/'
-                + r'1_DONNEES_LIVRAISON_\d{4}-\d\d-\d+/'
+filter_pattern = re.compile(r'BDTOPO_\d-\d_TOUSTHEMES_SHP_LAMB93_[DR]\d+_\d{4}-\d\d-\d\d/'
+                + r'BDTOPO/1_DONNEES_LIVRAISON_\d{4}-\d\d-\d+/'
                 + r'BDT_\d-\d_SHP_LAMB93_[DR]\d+-ED\d{4}-\d\d-\d\d/'
                 + r'([A-Z_]+)/([A-Z_]+)\.\w\w\w$')
 
@@ -39,6 +39,7 @@ def extract_py7zr(archive_path, theme, layer_name, target_dir):
     """
         Extraction using py7zr package
     """
+    # NOT TESTED YET!
     with SevenZipFile(archive_path, 'r') as archive:
         # Extracts the compressed shapefile
         to_extract = []

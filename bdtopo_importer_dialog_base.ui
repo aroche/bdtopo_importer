@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>873</width>
+    <width>702</width>
     <height>645</height>
    </rect>
   </property>
@@ -101,6 +101,19 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
          <widget class="QPushButton" name="pushButton_checkall">
           <property name="text">
            <string>Cocher tout</string>
@@ -113,6 +126,19 @@
            <string>Décocher tout</string>
           </property>
          </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </item>
@@ -197,6 +223,70 @@
     <hint type="destinationlabel">
      <x>20</x>
      <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_file</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>lineEdit_file_path</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>84</x>
+     <y>52</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>521</x>
+     <y>59</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_file</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>pushButton_file_select</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>71</x>
+     <y>52</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>768</x>
+     <y>56</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_folder</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>lineEdit_folder_path</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>71</x>
+     <y>90</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>307</x>
+     <y>93</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>radio_folder</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>pushButton_folder_select</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>91</x>
+     <y>93</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>735</x>
+     <y>98</y>
     </hint>
    </hints>
   </connection>
