@@ -33,6 +33,7 @@ from qgis.PyQt.QtWidgets import QFileDialog
 
 from qgis.gui import QgsProviderConnectionComboBox, QgsDatabaseSchemaComboBox
 
+
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'bdtopo_importer_dialog_base.ui'))
@@ -75,26 +76,61 @@ class BDTopoImporterDialog(QtWidgets.QDialog, FORM_CLASS):
                 item.appendRow(layeritem)
         
         self.treeView_layers.setModel(model)
+        self.treeView_layers.expandAll()
 
         # file access buttons
         self.pushButton_folder_select.clicked.connect(self.onFolderSelectClicked)
+        self.pushButton_file_select.clicked.connect(self.onFileSelectClicked)
 
+        # check/uncheck all buttons
+        self.pushButton_checkall.clicked.connect(self.onCheckAllClicked)
+        self.pushButton_uncheckall.clicked.connect(self.onUncheckAllClicked)
 
-    def getCheckedLayers(self):
-        """ Gets the list of cheched layers in the form [THEME, LAYER] """
+    def import_method(self):
+        """ Returns the chosen import method """
+        if self.radio_download.isChecked():
+            return 'download'
+        if self.radio_file.isChecked():
+            return 'compressed'
+        return 'folder'
+
+    def _layerTreeModelItems(self):
+        """ generates the layer items from the tree model
+        in the form (theme, layer_item)"""
         model = self.treeView_layers.model()
         root = model.invisibleRootItem()
-        layers = []
         for row in range(root.rowCount()):
             theme_item = root.child(row)
             theme = theme_item.data()
             for subrow in range(theme_item.rowCount()):
                 layer_item = theme_item.child(subrow)
-                if layer_item.checkState() == Qt.Checked:
-                    layers.append((theme, layer_item.data()))
+                yield (theme, layer_item)
+
+    def getCheckedLayers(self):
+        """ Gets the list of cheched layers in the form [THEME, LAYER] """
+        layers = []
+        for theme, layer_item in self._layerTreeModelItems():
+            if layer_item.checkState() == Qt.Checked:
+                layers.append((theme, layer_item.data()))
         return layers
 
     def onFolderSelectClicked(self):
         mydir = QFileDialog.getExistingDirectory(self, "Sélectionner un dossier")
         if mydir:
             self.lineEdit_folder_path.setText(mydir)
+
+    def onFileSelectClicked(self):
+        myfile, _ = QFileDialog.getOpenFileName(self, "Sélectionner un fichier",
+            filter="Fichiers 7zip (*.7z)")
+        if myfile:
+            self.lineEdit_file_path.setText(myfile)
+
+    def onCheckAllClicked(self):
+        """ button to check all layers clicked """
+        for _, item in self._layerTreeModelItems():
+            item.setCheckState(Qt.Checked)
+    
+    def onUncheckAllClicked(self):
+        """ button to uncheck all layers clicked """
+        for _, item in self._layerTreeModelItems():
+            item.setCheckState(Qt.Unchecked)

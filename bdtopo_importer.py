@@ -26,7 +26,7 @@ import re
 
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QAction, QFileDialog
 
 from qgis.core import Qgis, QgsProcessingUtils, QgsMessageLog
 from qgis import processing
@@ -76,7 +76,7 @@ class BDTopoImporter:
         self.first_start = None
 
         self.file_path = None
-        self.tempdir = QgsProcessingUtils.tempFolder() 
+        self.tempdir = QgsProcessingUtils.tempFolder()
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -150,6 +150,7 @@ class BDTopoImporter:
         """
         Runs the GDAL algoritm to store layer in postgis
         """
+        self.dlg.label_progress.setText(f"Importing layer {layername}")
         db = self.dlg.dbselect.currentConnection()
         params = {
             'DATABASE': db,
@@ -159,8 +160,8 @@ class BDTopoImporter:
             'APPEND': True, # TODO: make this an option
         }
         processing.run('gdal:importvectorintopostgisdatabaseavailableconnections', params)
-
-
+        self.dlg.progressBar.setValue(100)
+        
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
         for action in self.actions:
@@ -184,14 +185,57 @@ class BDTopoImporter:
             self.iface.messageBar().pushMessage(self.tr("Erreur"), 
                 self.tr("Le dossier n'a pas été trouvé"), level=Qgis.Critical)
             return
+
         layers = self.dlg.getCheckedLayers()
-        QgsMessageLog.logMessage(f"layers : {layers}")
         if len(layers) == 0:
             self.iface.messageBar().pushMessage(self.tr("Erreur"),
                 self.tr("Sélectionnez au moins une couche."), level=Qgis.Warning)
             return
+        
+        self.dlg.progressBar.setEnabled(True)
+        self.dlg.label_progress.setEnabled(True)
+        
         for theme, lyr in layers:
-            layerpath = extractors.get_folder(working_dir, theme, lyr)
+            if self.dlg.import_method() == 'download':
+                # first download file
+                # TODO
+                pass
+            if self.dlg.import_method() in ('download', 'compressed'):
+                # extracting from compressed file
+                self.dlg.label_progress.setText(f"Extracting layers for {lyr}")
+                self.dlg.progressBar.setValue(0)
+
+                archive = self.dlg.lineEdit_file_path.text()
+                if not os.path.isfile(archive):
+                    self.iface.messageBar().pushMessage(self.tr("Erreur"),
+                        self.tr("Le fichier .7z n'a pas été trouvé."), level=Qgis.Warning)
+                    return
+                if extractors.py7zr_available():
+                    layerpath = extractors.extract_7zip(archive, theme, lyr, working_dir)
+                else:
+                    s = QSettings()
+                    executable = s.value('bdtopo_importer/sevenzip_executable', "7z")                
+                    try:
+                        layerpath = extractors.extract_7zip(archive, theme, lyr, working_dir, executable,
+                            lambda i, total: self.dlg.progressBar.setValue(int((i+1)/(total+1)*100)))
+                    except extractors.ProgramNotFoundError:
+                        self.iface.messageBar().pushMessage(self.tr("Erreur"),
+                                self.tr("L'exécutable 7zip n'a pas été trouvé"), level=Qgis.Warning)
+                        # Let the user chose the 7zip program
+                        executable, _ = QFileDialog.getOpenFileName(
+                            self.dlg,
+                            self.tr("Sélectionnez le fichier d'exécutable de 7zip")
+                        )
+                        if executable:
+                            s.setValue('bdtopo_importer/sevenzip_executable', executable)
+                            self.iface.messageBar().pushMessage(self.tr("Exécutable 7zip modifié"),
+                                self.tr("Relancez le traitement."), level=Qgis.Warning)
+                        return
+            # TODO: download file
+            else:
+                # process already extracted files
+                layerpath = extractors.get_folder(working_dir, theme, lyr)
+
             self.process_layer(lyr, layerpath)
         self.dlg.accept()
 

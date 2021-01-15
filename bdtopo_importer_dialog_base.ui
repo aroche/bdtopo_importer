@@ -21,23 +21,6 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QRadioButton" name="radio_download">
-          <property name="text">
-           <string>Télécharger la région / le département</string>
-          </property>
-          <property name="checked">
-           <bool>false</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="comboBox_dept"/>
-        </item>
-       </layout>
-      </item>
-      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QRadioButton" name="radio_file">
@@ -45,7 +28,7 @@
            <string>Charger un fichier .7z</string>
           </property>
           <property name="checked">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -76,15 +59,22 @@
            <string>Charger un dossier décompressé</string>
           </property>
           <property name="checked">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QLineEdit" name="lineEdit_folder_path"/>
+         <widget class="QLineEdit" name="lineEdit_folder_path">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QPushButton" name="pushButton_folder_select">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Sélectionner un dossier...</string>
           </property>
@@ -166,7 +156,7 @@
       <bool>false</bool>
      </property>
      <property name="text">
-      <string>TextLabel</string>
+      <string/>
      </property>
     </widget>
    </item>
