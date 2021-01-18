@@ -43,6 +43,232 @@
                     "filename": "ADRESSE"
                 }
             ]
+        },
+        {
+            "title": "Bâti",
+            "pathname": "BATI",
+            "layers": [
+                {
+                    "name": "Bâtiments",
+                    "filename": "BATIMENT"
+                },
+                {
+                    "name": "Cimetières",
+                    "filename": "CIMETIERE"
+                },
+                {
+                    "name": "Constructions linéaires",
+                    "filename": "CONSTRUCTION_LINEAIRE"
+                },
+                {
+                    "name": "Constructions ponctuelles",
+                    "filename": "CONSTRUCTION_PONCTUELLE"
+                },
+                {
+                    "name": "Constructions surfaciques",
+                    "filename": "CONSTRUCTION_SURFACIQUE"
+                },
+                {
+                    "name": "Lignes orographiques",
+                    "filename": "LIGNE_OROGRAPHIQUE"
+                },
+                {
+                    "name": "Pylônes",
+                    "filename": "PYLONE"
+                },
+                {
+                    "name": "Réservoirs",
+                    "filename": "RESERVOIR"
+                },
+                {
+                    "name": "Terrains de sport",
+                    "filename": "TERRAIN_DE_SPORT"
+                },
+                {
+                    "name": "Toponymie du bâti",
+                    "filename": "TOPONYMIE_BATI"
+                }
+            ]
+        },
+        {
+            "title": "Hydrographie",
+            "pathname": "HYDROGRAPHIE",
+            "layers": [
+                {
+                    "name": "Bassins versants topographiques",
+                    "filename": "BASSIN_VERSANT_TOPOGRAPHIQUE"
+                },
+                {
+                    "name": "Cours d'eau",
+                    "filename": "COURS_D_EAU"
+                },
+                {
+                    "name": "Détails hydrographiques",
+                    "filename": "DETAIL_HYDROGRAPHIQUE"
+                },
+                {
+                    "name": "Limite terre/mer",
+                    "filename": "LIMITE_TERRE_MER"
+                },
+                {
+                    "name": "Noeuds hydrographiques",
+                    "filename": "NOEUD_HYDROGRAPHIQUE"
+                },
+                {
+                    "name": "Plans d'eau",
+                    "filename": "PLAN_D_EAU"
+                },
+                {
+                    "name": "Surfaces hydrographiques",
+                    "filename": "SURFACE_HYDROGRAPHIQUE"
+                },
+                {
+                    "name": "Réservoirs",
+                    "filename": "RESERVOIR"
+                },
+                {
+                    "name": "Toponymie hydrographique",
+                    "filename": "TOPONYMIE_HYDROGRAPHIE"
+                },
+                {
+                    "name": "Tronçons hydrographiques",
+                    "filename": "TRONCON_HYDROGRAPHIQUE"
+                }
+            ]
+        },
+        {
+            "title": "Lieux nommés",
+            "pathname": "LIEUX_NOMMES",
+            "layers": [
+                {
+                    "name": "Détails orographiques",
+                    "filename": "DETAIL_OROGRAPHIQUE"
+                },
+                {
+                    "name": "Lieux-dits non habités",
+                    "filename": "LIEU_DIT_NON_HABITE"
+                },
+                {
+                    "name": "Toponymie",
+                    "filename": "TOPONYMIE_LIEUX_NOMMES"
+                },
+                {
+                    "name": "Zones d'habitation",
+                    "filename": "ZONE_D_HABITATION"
+                }
+            ]
+        },
+        {
+            "title": "Occupation du sol",
+            "pathname": "OCCUPATION_DU_SOL",
+            "layers": [
+                {
+                    "name": "Zones de végétation",
+                    "filename": "ZONE_DE_VEGETATION"
+                },
+                {
+                    "name": "Zones d'estran",
+                    "filename": "ZONE_D_ESTRAN"
+                }
+            ]
+        },
+        {
+            "title": "Services et activités",
+            "pathname": "SERVICES_ET_ACTIVITES",
+            "layers": [
+                {
+                    "name": "Canalisations",
+                    "filename": "CANALISATION"
+                },
+                {
+                    "name": "Etablissements recevant du public (ERP)",
+                    "filename": "ERP"
+                },
+                {
+                    "name": "Lignes électriques",
+                    "filename": "LIGNE_ELECTRIQUE"
+                },
+                {
+                    "name": "Postes de transformation",
+                    "filename": "POSTE_DE_TRANSFORMATION"
+                },
+                {
+                    "name": "Toponymie",
+                    "filename": "TOPONYMIE_SERVICES_ET_ACTIVITES"
+                },
+                {
+                    "name": "Zones d'activités ou d'intérêt",
+                    "filename": "ZONE_D_ACTIVITE_OU_D_INTERET"
+                }
+            ]
+        },
+        {
+            "title": "Transports",
+            "pathname": "TRANSPORT",
+            "layers": [
+                {
+                    "name": "Aérodromes",
+                    "filename": "AERODROME"
+                },
+                {
+                    "name": "Equipements de transport",
+                    "filename": "EQUIPEMENT_DE_TRANSPORT"
+                },
+                {
+                    "name": "Non-communications",
+                    "filename": "NON_COMMUNICATION"
+                },
+                {
+                    "name": "Pistes d'aérodromes",
+                    "filename": "PISTE_D_AERODROME"
+                },
+                {
+                    "name": "Points de repère",
+                    "filename": "POINT_DE_REPERE"
+                },
+                {
+                    "name": "Points du réseau",
+                    "filename": "POINT_DU_RESEAU"
+                },
+                {
+                    "name": "Routes numérotées ou nommées",
+                    "filename": "ROUTE_NUMEROTEE_OU_NOMMEE"
+                },
+                {
+                    "name": "Toponymie",
+                    "filename": "TOPONYMIE_TRANSPORT"
+                },
+                {
+                    "name": "Tronçons de routes",
+                    "filename": "TRONCON_DE_ROUTE"
+                },
+                {
+                    "name": "Tronçons de voies ferrées",
+                    "filename": "TRONCON_DE_VOIE_FERREE"
+                },
+                {
+                    "name": "Voies ferrées nommées",
+                    "filename": "VOIE_FERREE_NOMMEE"
+                }
+            ]
+        },
+        {
+            "title": "Zones réglementées",
+            "pathname": "ZONES_REGLEMENTEES",
+            "layers": [
+                {
+                    "name": "forêts publiques",
+                    "filename": "FORET_PUBLIQUE"
+                },
+                {
+                    "name": "Parcs et réserves",
+                    "filename": "PARC_OU_RESERVE"
+                },
+                {
+                    "name": "Toponymie",
+                    "filename": "TOPONYMIE_ZONES_REGLEMENTEES"
+                }
+            ]
         }
     ]
 }
