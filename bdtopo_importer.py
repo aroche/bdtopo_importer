@@ -192,10 +192,17 @@ class BDTopoImporter:
                 self.tr("Sélectionnez au moins une couche."), level=Qgis.Warning)
             return
         
+        self.dlg.progressBar.setMaximum(len(layers) * 2)
+        self.dlg.progressBar.setValue(0)
         self.dlg.progressBar.setEnabled(True)
         self.dlg.label_progress.setEnabled(True)
+
+        s = QSettings()
+        executable = s.value('bdtopo_importer/sevenzip_executable', "7z")
         
+        counter = 0
         for theme, lyr in layers:
+            self.dlg.label_progress.setText(f"Extracting layer {lyr}...")
             if self.dlg.import_method() == 'download':
                 # first download file
                 # TODO
@@ -205,38 +212,38 @@ class BDTopoImporter:
                 self.dlg.label_progress.setText(f"Extracting layers for {lyr}")
                 self.dlg.progressBar.setValue(0)
 
+                # check archive exists
                 archive = self.dlg.lineEdit_file_path.text()
                 if not os.path.isfile(archive):
                     self.iface.messageBar().pushMessage(self.tr("Erreur"),
                         self.tr("Le fichier .7z n'a pas été trouvé."), level=Qgis.Warning)
                     return
-                if extractors.py7zr_available():
-                    layerpath = extractors.extract_7zip(archive, theme, lyr, working_dir)
-                else:
-                    s = QSettings()
-                    executable = s.value('bdtopo_importer/sevenzip_executable', "7z")                
-                    try:
-                        layerpath = extractors.extract_7zip(archive, theme, lyr, working_dir, executable,
-                            lambda i, total: self.dlg.progressBar.setValue(int((i+1)/(total+1)*100)))
-                    except extractors.ProgramNotFoundError:
-                        self.iface.messageBar().pushMessage(self.tr("Erreur"),
-                                self.tr("L'exécutable 7zip n'a pas été trouvé"), level=Qgis.Warning)
-                        # Let the user chose the 7zip program
-                        executable, _ = QFileDialog.getOpenFileName(
-                            self.dlg,
-                            self.tr("Sélectionnez le fichier d'exécutable de 7zip")
-                        )
-                        if executable:
-                            s.setValue('bdtopo_importer/sevenzip_executable', executable)
-                            self.iface.messageBar().pushMessage(self.tr("Exécutable 7zip modifié"),
-                                self.tr("Relancez le traitement."), level=Qgis.Warning)
-                        return
-            # TODO: download file
+               
+                try:
+                    layerpath = extractors.extract_7zip(archive, theme, lyr, working_dir, executable)
+                except extractors.ProgramNotFoundError:
+                    self.iface.messageBar().pushMessage(self.tr("Erreur"),
+                            self.tr("L'exécutable 7zip n'a pas été trouvé"), level=Qgis.Warning)
+                    # Let the user chose the 7zip program
+                    executable, _ = QFileDialog.getOpenFileName(
+                        self.dlg,
+                        self.tr("Sélectionnez le fichier d'exécutable de 7zip")
+                    )
+                    if executable:
+                        s.setValue('bdtopo_importer/sevenzip_executable', executable)
+                        self.iface.messageBar().pushMessage(self.tr("Exécutable 7zip modifié"),
+                            self.tr("Relancez le traitement."), level=Qgis.Warning)
+                    return
             else:
                 # process already extracted files
                 layerpath = extractors.get_folder(working_dir, theme, lyr)
+            counter += 1
+            self.dlg.progressBar.setValue(counter)
 
+            self.dlg.label_progress.setText(f"Importing layer {lyr}...")
             self.process_layer(lyr, layerpath)
+            counter += 1
+            self.dlg.progressBar.setValue(counter)
         self.dlg.accept()
 
     def run(self):

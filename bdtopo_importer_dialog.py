@@ -88,8 +88,8 @@ class BDTopoImporterDialog(QtWidgets.QDialog, FORM_CLASS):
 
     def import_method(self):
         """ Returns the chosen import method """
-        if self.radio_download.isChecked():
-            return 'download'
+        #if self.radio_download.isChecked():
+        #    return 'download'
         if self.radio_file.isChecked():
             return 'compressed'
         return 'folder'

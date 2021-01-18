@@ -5,6 +5,7 @@ Functions to extract layer files from 7zip files
 import re
 import subprocess
 import os
+import shutil
 
 try:
     from py7zr import SevenZipFile
@@ -27,31 +28,30 @@ def _test_file(f):
     return filter_pattern.search(rep)
 
 
-def py7zr_available():
-    try:
-        import py7zr
-    except ImportError:
-        return False
-    return True
-
-
-def extract_py7zr(archive_path, theme, layer_name, target_dir):
+def extract_py7zr(archive_path, theme, layer_name, 
+                target_dir, callback=None):
     """
         Extraction using py7zr package
     """
-    # NOT TESTED YET!
     with SevenZipFile(archive_path, 'r') as archive:
         # Extracts the compressed shapefile
         to_extract = []
         for f in archive.getnames():
             match = _test_file(f)
-            if match and theme == match.group(1) and layer_name == match.group(2):
+            if match and theme == match.group(1) \
+                and layer_name == match.group(2):
                 to_extract.append(f)
         archive.extract(targets=to_extract, path=target_dir)
+    # move extracted files to the root folder and deletes created folders
+    for f in to_extract:
+        fname = os.path.basename(f)
+        os.replace(os.path.join(target_dir, f), os.path.join(target_dir, fname))
+    dirname = os.path.splitext(os.path.basename(archive_path))[0]
+    shutil.rmtree(os.path.join(target_dir, dirname))
     return os.path.join(target_dir, layer_name + '.shp')
 
 
-def extract_7zip(archive_path, theme, layer_name, target_dir, 
+def extract_7zip_external(archive_path, theme, layer_name, target_dir, 
                  executable='7z', callback=None):
     """
     Extraction using the 7z program.
@@ -85,6 +85,19 @@ def extract_7zip(archive_path, theme, layer_name, target_dir,
         if callback:
             callback(i, len(shape_files))
     return os.path.join(target_dir, layer_name + '.shp')
+
+
+def extract_7zip(archive_path, theme, layer_name, target_dir, 
+                 executable='7z', callback=None):
+    """ extracts data, first tries with py7zr
+    then with 7zip """
+    try:
+        import py7zr
+    except ImportError:
+        return extract_7zip_external(archive_path, theme, layer_name,
+                    target_dir, executable, callback)
+    return extract_py7zr(archive_path, theme, layer_name, 
+                target_dir, callback)
 
 
 def get_folder(folder_path, theme, layer_name):
