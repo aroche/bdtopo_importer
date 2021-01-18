@@ -150,14 +150,15 @@ class BDTopoImporter:
         """
         Runs the GDAL algoritm to store layer in postgis
         """
-        self.dlg.label_progress.setText(f"Importing layer {layername}")
+        
         db = self.dlg.dbselect.currentConnection()
         params = {
             'DATABASE': db,
             'INPUT': layerpath,
             'SCHEMA': self.dlg.schemaselect.currentSchema(),
             'TABLE': layername.lower(),
-            'APPEND': True, # TODO: make this an option
+            'APPEND': self.dlg.radioButton_append.isChecked(),
+            'OVERWRITE': self.dlg.radioButton_overwrite.isChecked()
         }
         processing.run('gdal:importvectorintopostgisdatabaseavailableconnections', params)
         self.dlg.progressBar.setValue(100)
@@ -193,9 +194,10 @@ class BDTopoImporter:
             return
         
         self.dlg.progressBar.setMaximum(len(layers) * 2)
-        self.dlg.progressBar.setValue(0)
+        self.dlg.progressBar.reset()
         self.dlg.progressBar.setEnabled(True)
         self.dlg.label_progress.setEnabled(True)
+        self.dlg.repaint()
 
         s = QSettings()
         executable = s.value('bdtopo_importer/sevenzip_executable', "7z")
@@ -203,15 +205,13 @@ class BDTopoImporter:
         counter = 0
         for theme, lyr in layers:
             self.dlg.label_progress.setText(f"Extracting layer {lyr}...")
+            self.dlg.repaint()
             if self.dlg.import_method() == 'download':
                 # first download file
                 # TODO
                 pass
             if self.dlg.import_method() in ('download', 'compressed'):
                 # extracting from compressed file
-                self.dlg.label_progress.setText(f"Extracting layers for {lyr}")
-                self.dlg.progressBar.setValue(0)
-
                 # check archive exists
                 archive = self.dlg.lineEdit_file_path.text()
                 if not os.path.isfile(archive):
@@ -237,14 +237,20 @@ class BDTopoImporter:
             else:
                 # process already extracted files
                 layerpath = extractors.get_folder(working_dir, theme, lyr)
+            
             counter += 1
             self.dlg.progressBar.setValue(counter)
 
             self.dlg.label_progress.setText(f"Importing layer {lyr}...")
+            self.dlg.repaint()
             self.process_layer(lyr, layerpath)
             counter += 1
             self.dlg.progressBar.setValue(counter)
+            self.dlg.repaint()
+        
+        self.dlg.reset_progress()
         self.dlg.accept()
+        self.iface.messageBar().pushMessage(self.tr("Import BDTopo terminé"), Qgis.Success)
 
     def run(self):
         """Run method that performs all the real work"""

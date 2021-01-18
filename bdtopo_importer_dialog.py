@@ -78,6 +78,8 @@ class BDTopoImporterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.treeView_layers.setModel(model)
         self.treeView_layers.expandAll()
 
+        self.reset_progress()
+
         # file access buttons
         self.pushButton_folder_select.clicked.connect(self.onFolderSelectClicked)
         self.pushButton_file_select.clicked.connect(self.onFileSelectClicked)
@@ -113,6 +115,12 @@ class BDTopoImporterDialog(QtWidgets.QDialog, FORM_CLASS):
             if layer_item.checkState() == Qt.Checked:
                 layers.append((theme, layer_item.data()))
         return layers
+
+    def reset_progress(self):
+        """ Resets and disables the prress bar """
+        self.progressBar.reset()
+        self.progressBar.setEnabled(False)
+        self.label_progress.setText("")
 
     def onFolderSelectClicked(self):
         mydir = QFileDialog.getExistingDirectory(self, "Sélectionner un dossier")
