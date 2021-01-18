@@ -28,7 +28,9 @@ from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction, QFileDialog
 
-from qgis.core import Qgis, QgsProcessingUtils, QgsMessageLog
+from qgis.core import (
+    Qgis, QgsProcessingUtils, QgsMessageLog, QgsTask, QgsApplication
+)
 from qgis import processing
 
 
@@ -38,6 +40,109 @@ from .resources import *
 from .bdtopo_importer_dialog import BDTopoImporterDialog
 from . import extractors
 
+
+MESSAGE_CATEGORY = "BDTopo Importer"
+
+
+class LayerImportTask(QgsTask):
+    """ Task for importing a single layer 
+    options :
+    - connection : the db connection
+    - schema : the schema to use
+    - import_method : download/compressed/folder
+    - overwrite
+    """
+
+    def __init__(self, source, layer, theme, options):
+        super().__init__(f"Importing BDTopo layer {layer}", QgsTask.CanCancel)
+        self.layer = layer
+        self.source = source
+        self.theme = theme
+        self.options = options
+
+        self.tempdir = QgsProcessingUtils.tempFolder()
+
+    # noinspection PyMethodMayBeStatic
+    def tr(self, message):
+        """Get the translation for a string using Qt translation API.
+
+        We implement this ourselves since we do not inherit QObject.
+
+        :param message: String for translation.
+        :type message: str, QString
+
+        :returns: Translated version of message.
+        :rtype: QString
+        """
+        # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
+        return QCoreApplication.translate('BDTopoImporter', message)
+
+    def process_layer(self, layerpath):
+        """
+        Runs the GDAL algoritm to store layer in postgis
+        """
+        
+        db = self.options['connection']
+        params = {
+            'DATABASE': db,
+            'INPUT': layerpath,
+            'SCHEMA': self.options['schema'],
+            'TABLE': self.layer.lower(),
+            'APPEND': not self.options['overwrite'],
+            'OVERWRITE': self.options['overwrite']
+        }
+        processing.run('gdal:importvectorintopostgisdatabaseavailableconnections', params)
+        self.setProgress(100)
+
+    def run(self):
+        if self.options['import_method'] == 'download':
+            # first download file
+            # TODO
+            pass
+        if self.options['import_method'] in ('download', 'compressed'):
+            # extracting from compressed file
+            archive = self.source
+            
+            executable = self.options.get('executable')
+            try:
+                layerpath = extractors.extract_7zip(archive, self.theme, 
+                                        self.layer, self.tempdir, executable)
+            except extractors.ProgramNotFoundError:
+                # TODO: Let user select 7zip appli from main window
+                QgsMessageLog.logMessage(
+                        self.tr("L'exécutable 7zip n'a pas été trouvé"), 
+                        MESSAGE_CATEGORY, Qgis.Warning)
+                # Let the user chose the 7zip program
+                executable, _ = QFileDialog.getOpenFileName(
+                    self.dlg,
+                    self.tr("Sélectionnez le fichier d'exécutable de 7zip")
+                )
+                if executable:
+                    QSettings().setValue('bdtopo_importer/sevenzip_executable', executable)
+                return False
+        else:
+            # process already extracted files
+            layerpath = extractors.get_folder(self.source, self.theme, self.layer)
+        self.setProgress(50)
+        if self.isCanceled():
+            return False
+        self.process_layer(layerpath)
+        return True
+
+    def cancel(self):
+        QgsMessageLog.logMessage(
+            self.tr(f"Annulation de l'import de la couche {self.layer}."),
+            MESSAGE_CATEGORY, Qgis.Info
+        )
+        super().cancel()
+
+    def finished(self, result):
+        if result:
+            QgsMessageLog.logMessage(self.tr(f"Export de la couche {self.layer} réussi."),
+            MESSAGE_CATEGORY, Qgis.Success)
+        else:
+            pass
+            # TODO: raise exceptions
 
 
 class BDTopoImporter:
@@ -75,8 +180,8 @@ class BDTopoImporter:
         # Must be set in initGui() to survive plugin reloads
         self.first_start = None
 
-        self.file_path = None
-        self.tempdir = QgsProcessingUtils.tempFolder()
+        # must keep it in scope
+        self.task_manager = QgsApplication.taskManager()
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -145,23 +250,6 @@ class BDTopoImporter:
 
         # will be set False in run()
         self.first_start = True
-
-    def process_layer(self, layername, layerpath):
-        """
-        Runs the GDAL algoritm to store layer in postgis
-        """
-        
-        db = self.dlg.dbselect.currentConnection()
-        params = {
-            'DATABASE': db,
-            'INPUT': layerpath,
-            'SCHEMA': self.dlg.schemaselect.currentSchema(),
-            'TABLE': layername.lower(),
-            'APPEND': self.dlg.radioButton_append.isChecked(),
-            'OVERWRITE': self.dlg.radioButton_overwrite.isChecked()
-        }
-        processing.run('gdal:importvectorintopostgisdatabaseavailableconnections', params)
-        self.dlg.progressBar.setValue(100)
         
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
@@ -181,76 +269,41 @@ class BDTopoImporter:
 
     def importLayers(self):
         """ Main method to import selected layers """
-        working_dir = self.getWorkingDir()
-        if not os.path.isdir(working_dir):
-            self.iface.messageBar().pushMessage(self.tr("Erreur"), 
-                self.tr("Le dossier n'a pas été trouvé"), level=Qgis.Critical)
-            return
 
         layers = self.dlg.getCheckedLayers()
         if len(layers) == 0:
             self.iface.messageBar().pushMessage(self.tr("Erreur"),
                 self.tr("Sélectionnez au moins une couche."), level=Qgis.Warning)
             return
-        
-        self.dlg.progressBar.setMaximum(len(layers) * 2)
-        self.dlg.progressBar.reset()
-        self.dlg.progressBar.setEnabled(True)
-        self.dlg.label_progress.setEnabled(True)
-        self.dlg.repaint()
 
+        if self.dlg.import_method() == 'compressed':
+            source = self.dlg.lineEdit_file_path.text()
+            if not os.path.isfile(source):
+                self.iface.messageBar().pushMessage(self.tr("Erreur"),
+                    self.tr("Sélectionnez un fichier valide."), level=Qgis.Critical)
+                return
+        else: # folder import
+            source = self.dlg.lineEdit_folder_path.text()
+            if not os.path.isdir(source):
+                self.iface.messageBar().pushMessage(self.tr("Erreur"),
+                    self.tr("Sélectionnez un dossier valide."), level=Qgis.Critical)
+                return
         s = QSettings()
         executable = s.value('bdtopo_importer/sevenzip_executable', "7z")
-        
-        counter = 0
-        for theme, lyr in layers:
-            self.dlg.label_progress.setText(f"Extracting layer {lyr}...")
-            self.dlg.repaint()
-            if self.dlg.import_method() == 'download':
-                # first download file
-                # TODO
-                pass
-            if self.dlg.import_method() in ('download', 'compressed'):
-                # extracting from compressed file
-                # check archive exists
-                archive = self.dlg.lineEdit_file_path.text()
-                if not os.path.isfile(archive):
-                    self.iface.messageBar().pushMessage(self.tr("Erreur"),
-                        self.tr("Le fichier .7z n'a pas été trouvé."), level=Qgis.Warning)
-                    return
-               
-                try:
-                    layerpath = extractors.extract_7zip(archive, theme, lyr, working_dir, executable)
-                except extractors.ProgramNotFoundError:
-                    self.iface.messageBar().pushMessage(self.tr("Erreur"),
-                            self.tr("L'exécutable 7zip n'a pas été trouvé"), level=Qgis.Warning)
-                    # Let the user chose the 7zip program
-                    executable, _ = QFileDialog.getOpenFileName(
-                        self.dlg,
-                        self.tr("Sélectionnez le fichier d'exécutable de 7zip")
-                    )
-                    if executable:
-                        s.setValue('bdtopo_importer/sevenzip_executable', executable)
-                        self.iface.messageBar().pushMessage(self.tr("Exécutable 7zip modifié"),
-                            self.tr("Relancez le traitement."), level=Qgis.Warning)
-                    return
-            else:
-                # process already extracted files
-                layerpath = extractors.get_folder(working_dir, theme, lyr)
-            
-            counter += 1
-            self.dlg.progressBar.setValue(counter)
-
-            self.dlg.label_progress.setText(f"Importing layer {lyr}...")
-            self.dlg.repaint()
-            self.process_layer(lyr, layerpath)
-            counter += 1
-            self.dlg.progressBar.setValue(counter)
-            self.dlg.repaint()
-        
-        self.dlg.reset_progress()
+        self.iface.messageBar().pushMessage(self.tr("BDTopo"),
+                    self.tr("Lancement des tâches d'import."), level=Qgis.Info)
+        options = {
+            'executable': executable,
+            'connection': self.dlg.dbselect.currentConnection(),
+            'schema': self.dlg.schemaselect.currentSchema(),
+            'import_method': self.dlg.import_method(),
+            'overwrite': self.dlg.radioButton_overwrite.isChecked()
+        }
         self.dlg.accept()
-        self.iface.messageBar().pushMessage(self.tr("Import BDTopo terminé"), Qgis.Success)
+        for theme, layer in layers:
+            task = LayerImportTask(source, layer, theme, options)
+            self.task_manager.addTask(task)
+        
 
     def run(self):
         """Run method that performs all the real work"""

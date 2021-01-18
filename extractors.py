@@ -28,6 +28,15 @@ def _test_file(f):
     return filter_pattern.search(rep)
 
 
+def _clean_empty_folders(root):
+    """ Delete folders only if empty """
+    for dirpath, dirnames, filenames in os.walk(root, topdown=False):
+        try:
+            os.rmdir(dirpath)
+        except OSError:
+            pass
+
+
 def extract_py7zr(archive_path, theme, layer_name, 
                 target_dir, callback=None):
     """
@@ -47,7 +56,9 @@ def extract_py7zr(archive_path, theme, layer_name,
         fname = os.path.basename(f)
         os.replace(os.path.join(target_dir, f), os.path.join(target_dir, fname))
     dirname = os.path.splitext(os.path.basename(archive_path))[0]
-    shutil.rmtree(os.path.join(target_dir, dirname))
+    # causes problems with parallel extractions
+    #shutil.rmtree(os.path.join(target_dir, dirname))
+    _clean_empty_folders(os.path.join(target_dir, dirname))
     return os.path.join(target_dir, layer_name + '.shp')
 
 
