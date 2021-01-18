@@ -38,7 +38,7 @@ def _clean_empty_folders(root):
 
 
 def extract_py7zr(archive_path, theme, layer_name, 
-                target_dir, callback=None):
+                target_dir):
     """
         Extraction using py7zr package
     """
@@ -63,7 +63,7 @@ def extract_py7zr(archive_path, theme, layer_name,
 
 
 def extract_7zip_external(archive_path, theme, layer_name, target_dir, 
-                 executable='7z', callback=None):
+                 executable='7z'):
     """
     Extraction using the 7z program.
     It must be installed on the sytem.
@@ -88,27 +88,23 @@ def extract_7zip_external(archive_path, theme, layer_name, target_dir,
             if match and theme == match.group(1) \
                     and layer_name == match.group(2):
                 shape_files.append(subpath)
-    for i, f in enumerate(shape_files):
+    for f in shape_files:
         completed = subprocess.run([executable, 'e',
                     '-o' + target_dir, '-y', archive_path, f],
                     capture_output=True)
         completed.check_returncode()
-        if callback:
-            callback(i, len(shape_files))
     return os.path.join(target_dir, layer_name + '.shp')
 
 
-def extract_7zip(archive_path, theme, layer_name, target_dir, 
-                 executable='7z', callback=None):
+def extract_7zip(archive_path, theme, layer_name, target_dir, method='python',
+                 executable='7z'):
     """ extracts data, first tries with py7zr
     then with 7zip """
-    try:
-        import py7zr
-    except ImportError:
+    if method == 'external':
         return extract_7zip_external(archive_path, theme, layer_name,
-                    target_dir, executable, callback)
+                    target_dir, executable)
     return extract_py7zr(archive_path, theme, layer_name, 
-                target_dir, callback)
+                target_dir)
 
 
 def get_folder(folder_path, theme, layer_name):

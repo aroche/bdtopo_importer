@@ -28,7 +28,7 @@ import json
 from qgis.PyQt import uic
 from qgis.PyQt import QtWidgets
 from qgis.PyQt.QtGui import QStandardItemModel, QStandardItem
-from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtCore import Qt, QSettings
 from qgis.PyQt.QtWidgets import QFileDialog
 
 from qgis.gui import QgsProviderConnectionComboBox, QgsDatabaseSchemaComboBox
@@ -37,6 +37,40 @@ from qgis.gui import QgsProviderConnectionComboBox, QgsDatabaseSchemaComboBox
 # This loads your .ui file so that PyQt can populate your plugin with the elements from Qt Designer
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'bdtopo_importer_dialog_base.ui'))
+
+
+class ExtractorSettingsDialog(QtWidgets.QDialog):
+    """ Dialog box for setting extraction parameters """
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        uifile = os.path.join(
+            os.path.dirname(__file__), 
+            'bdtopo_importer_dialog_extract_parameters.ui')
+        uic.loadUi(uifile, self)
+
+        s = QSettings()
+        method = s.value('bdtopo_importer/extract_method', 'python')
+        command = s.value('bdtopo_importer/extract_command', '7z')
+        if method and method == 'external':
+            self.radioButton_external.setChecked(True)
+            self.radioButton_python.setChecked(False)
+        else:
+            self.radioButton_external.setChecked(False)
+            self.radioButton_python.setChecked(True)
+        self.lineEdit_command.setText(command)
+
+        self.buttonBox.accepted.connect(self.onAccepted)
+
+    def onAccepted(self):
+        s = QSettings()
+        command = self.lineEdit_command.text()
+        if command:
+            s.setValue('bdtopo_importer/extract_command', command)
+        method = 'external' if self.radioButton_external.isChecked() else 'python'
+        s.setValue('bdtopo_importer/extract_method', method)
+
+
 
 
 class BDTopoImporterDialog(QtWidgets.QDialog, FORM_CLASS):
@@ -78,7 +112,8 @@ class BDTopoImporterDialog(QtWidgets.QDialog, FORM_CLASS):
         self.treeView_layers.setModel(model)
         self.treeView_layers.expandAll()
 
-        self.reset_progress()
+        # extract parameter dialog
+        self.settings_dlg = ExtractorSettingsDialog(self)
 
         # file access buttons
         self.pushButton_folder_select.clicked.connect(self.onFolderSelectClicked)
@@ -87,6 +122,9 @@ class BDTopoImporterDialog(QtWidgets.QDialog, FORM_CLASS):
         # check/uncheck all buttons
         self.pushButton_checkall.clicked.connect(self.onCheckAllClicked)
         self.pushButton_uncheckall.clicked.connect(self.onUncheckAllClicked)
+
+        # settings button
+        self.toolButton_extract_parameters.clicked.connect(self.onExtractParametersClicked)
 
     def import_method(self):
         """ Returns the chosen import method """
@@ -116,12 +154,6 @@ class BDTopoImporterDialog(QtWidgets.QDialog, FORM_CLASS):
                 layers.append((theme, layer_item.data()))
         return layers
 
-    def reset_progress(self):
-        """ Resets and disables the prress bar """
-        self.progressBar.reset()
-        self.progressBar.setEnabled(False)
-        self.label_progress.setText("")
-
     def onFolderSelectClicked(self):
         mydir = QFileDialog.getExistingDirectory(self, "Sélectionner un dossier")
         if mydir:
@@ -142,3 +174,7 @@ class BDTopoImporterDialog(QtWidgets.QDialog, FORM_CLASS):
         """ button to uncheck all layers clicked """
         for _, item in self._layerTreeModelItems():
             item.setCheckState(Qt.Unchecked)
+
+    def onExtractParametersClicked(self):
+        """ Show parameters dialog """
+        self.settings_dlg.show()

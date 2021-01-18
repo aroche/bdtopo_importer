@@ -104,21 +104,16 @@ class LayerImportTask(QgsTask):
             archive = self.source
             
             executable = self.options.get('executable')
+            extract_method = self.options.get('extract_method')
             try:
                 layerpath = extractors.extract_7zip(archive, self.theme, 
-                                        self.layer, self.tempdir, executable)
+                                        self.layer, self.tempdir, 
+                                        extract_method, executable)
             except extractors.ProgramNotFoundError:
                 # TODO: Let user select 7zip appli from main window
                 QgsMessageLog.logMessage(
                         self.tr("L'exécutable 7zip n'a pas été trouvé"), 
-                        MESSAGE_CATEGORY, Qgis.Warning)
-                # Let the user chose the 7zip program
-                executable, _ = QFileDialog.getOpenFileName(
-                    self.dlg,
-                    self.tr("Sélectionnez le fichier d'exécutable de 7zip")
-                )
-                if executable:
-                    QSettings().setValue('bdtopo_importer/sevenzip_executable', executable)
+                        MESSAGE_CATEGORY, Qgis.Critical)
                 return False
         else:
             # process already extracted files
@@ -259,14 +254,6 @@ class BDTopoImporter:
                 action)
             self.iface.removeToolBarIcon(action)
 
-    def getWorkingDir(self):
-        """ Gets directory where layers are stored """
-        if self.dlg.radio_folder.isChecked():
-            # selected folder
-            return self.dlg.lineEdit_folder_path.text()
-        else:
-            return self.tempdir
-
     def importLayers(self):
         """ Main method to import selected layers """
 
@@ -289,15 +276,18 @@ class BDTopoImporter:
                     self.tr("Sélectionnez un dossier valide."), level=Qgis.Critical)
                 return
         s = QSettings()
-        executable = s.value('bdtopo_importer/sevenzip_executable', "7z")
+        executable = s.value('bdtopo_importer/extract_command', "7z")
         self.iface.messageBar().pushMessage(self.tr("BDTopo"),
                     self.tr("Lancement des tâches d'import."), level=Qgis.Info)
+        
+        # create background tasks
         options = {
             'executable': executable,
             'connection': self.dlg.dbselect.currentConnection(),
             'schema': self.dlg.schemaselect.currentSchema(),
             'import_method': self.dlg.import_method(),
-            'overwrite': self.dlg.radioButton_overwrite.isChecked()
+            'overwrite': self.dlg.radioButton_overwrite.isChecked(),
+            'extract_method': s.value('bdtopo_importer/extract_method')
         }
         self.dlg.accept()
         for theme, layer in layers:
