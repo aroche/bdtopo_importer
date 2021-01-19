@@ -6,7 +6,7 @@
 name=BDTopo Importer
 qgisMinimumVersion=3.14
 description=Import facile des couches de la BDTopo dans une base de données PostGIS
-version=0.1
+version=0.2
 author=Augustin Roche
 email=augustin.roche@gmail.com
 
@@ -15,8 +15,8 @@ about=Facilite l'import des données de la BDTopo de l'IGN dans une base de donn
     Peut utiliser les fichiers compressés directement (nécessite 7zip ou le package 
     python py7zr)
 
-tracker=http://bugs
-repository=http://repo
+tracker=https://github.com/aroche/bdtopo_importer/issues
+repository=https://github.com/aroche/bdtopo_importer
 # End of mandatory metadata
 
 # Recommended items:
@@ -26,9 +26,9 @@ hasProcessingProvider=no
 # changelog=
 
 # Tags are comma separated with spaces allowed
-tags=python,IGN,import
+tags=python,IGN,import,France
 
-homepage=http://homepage
+homepage=
 category=Plugins
 icon=icon.png
 # experimental flag
@@ -43,7 +43,7 @@ deprecated=False
 # plugin_dependencies=
 
 Category of the plugin: Raster, Vector, Database or Web
-# category=
+category=Database
 
 # If the plugin can run on QGIS Server.
 server=False
