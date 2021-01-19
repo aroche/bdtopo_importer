@@ -51,6 +51,7 @@ class LayerImportTask(QgsTask):
     - schema : the schema to use
     - import_method : download/compressed/folder
     - overwrite
+    - extract_method
     """
 
     def __init__(self, source, layer, theme, options):
@@ -97,7 +98,7 @@ class LayerImportTask(QgsTask):
     def run(self):
         if self.options['import_method'] == 'download':
             # first download file
-            # TODO
+            # TODO (or not)
             pass
         if self.options['import_method'] in ('download', 'compressed'):
             # extracting from compressed file
@@ -132,6 +133,9 @@ class LayerImportTask(QgsTask):
         super().cancel()
 
     def finished(self, result):
+        # delete created files
+        if self.options['import_method'] != 'folder':
+            extractors.delete_files(self.tempdir, self.layer)
         if result:
             QgsMessageLog.logMessage(self.tr(f"Export de la couche {self.layer} réussi."),
             MESSAGE_CATEGORY, Qgis.Success)
@@ -293,7 +297,7 @@ class BDTopoImporter:
         for theme, layer in layers:
             task = LayerImportTask(source, layer, theme, options)
             self.task_manager.addTask(task)
-        
+
 
     def run(self):
         """Run method that performs all the real work"""

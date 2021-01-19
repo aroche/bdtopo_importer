@@ -5,7 +5,6 @@ Functions to extract layer files from 7zip files
 import re
 import subprocess
 import os
-import shutil
 
 try:
     from py7zr import SevenZipFile
@@ -119,3 +118,11 @@ def get_folder(folder_path, theme, layer_name):
             if match and ext == '.shp' and theme == match.group(1) \
                     and layer_name == match.group(2):
                 return fpath
+
+
+def delete_files(folder_path, layer_name):
+    """ Tries to delete temporary files """
+    for f in os.listdir(folder_path):
+        fullpath = os.path.join(folder_path, f)
+        if os.path.isfile(fullpath) and os.path.splitext(f)[0] == layer_name:
+            os.remove(fullpath)
