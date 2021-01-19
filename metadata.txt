@@ -28,7 +28,7 @@ hasProcessingProvider=no
 # Tags are comma separated with spaces allowed
 tags=python,IGN,import,France
 
-homepage=
+homepage=https://github.com/aroche/bdtopo_importer
 category=Plugins
 icon=icon.png
 # experimental flag
