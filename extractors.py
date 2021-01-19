@@ -49,6 +49,8 @@ def extract_py7zr(archive_path, theme, layer_name,
             if match and theme == match.group(1) \
                 and layer_name == match.group(2):
                 to_extract.append(f)
+        if len(to_extract) == 0: # layer not found
+            return None
         archive.extract(targets=to_extract, path=target_dir)
     # move extracted files to the root folder and deletes created folders
     for f in to_extract:
@@ -79,6 +81,7 @@ def extract_7zip_external(archive_path, theme, layer_name, target_dir,
     output = completed.stdout
 
     shape_files = []
+    n = 0
     for li in output.split("\n"):
         if re.match(r'^\d\d\d\d-\d\d-\d\d', li):
             parts = re.split(r'\s+', li)
@@ -86,7 +89,10 @@ def extract_7zip_external(archive_path, theme, layer_name, target_dir,
             match = _test_file(subpath)
             if match and theme == match.group(1) \
                     and layer_name == match.group(2):
+                n += 1
                 shape_files.append(subpath)
+    if n == 0: # layer not found
+        return None
     for f in shape_files:
         completed = subprocess.run([executable, 'e',
                     '-o' + target_dir, '-y', archive_path, f],

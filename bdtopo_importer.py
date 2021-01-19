@@ -22,7 +22,6 @@
  ***************************************************************************/
 """
 import os.path
-import re
 
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import QIcon
@@ -120,6 +119,8 @@ class LayerImportTask(QgsTask):
             # process already extracted files
             layerpath = extractors.get_folder(self.source, self.theme, self.layer)
         self.setProgress(50)
+        if layerpath is None: # the layer was not found
+            return False
         if self.isCanceled():
             return False
         self.process_layer(layerpath)
