@@ -54,7 +54,7 @@ class LayerImportTask(QgsTask):
     """
 
     def __init__(self, source, layer, theme, options):
-        super().__init__(f"Importing BDTopo layer {layer}", QgsTask.CanCancel)
+        super().__init__(f"Import BDTopo layer {layer}", QgsTask.CanCancel)
         self.layer = layer
         self.source = source
         self.theme = theme
@@ -298,7 +298,6 @@ class BDTopoImporter:
         for theme, layer in layers:
             task = LayerImportTask(source, layer, theme, options)
             self.task_manager.addTask(task)
-
 
     def run(self):
         """Run method that performs all the real work"""

@@ -140,3 +140,4 @@ cython_debug/
 .vscode/
 
 copy.bat
+bdtopo_importer.zip

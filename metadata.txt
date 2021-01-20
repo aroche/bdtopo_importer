@@ -12,7 +12,7 @@ email=augustin.roche@gmail.com
 
 about=Facilite l'import des données de la BDTopo de l'IGN dans une base de données PostGIS. 
     Permet de traiter plusieurs couches et et d'ajouter les données à des tables existantes.
-    Peut utiliser les fichiers compressés directement (nécessite 7zip ou le package 
+    Peut utiliser les fichiers compressés directement (nécessite d'installer 7zip ou le package 
     python py7zr)
 
 tracker=https://github.com/aroche/bdtopo_importer/issues
@@ -42,8 +42,8 @@ deprecated=False
 # Check the documentation for more information.
 # plugin_dependencies=
 
-Category of the plugin: Raster, Vector, Database or Web
-category=Database
+# Category of the plugin: Raster, Vector, Database or Web
+# category=Database
 
 # If the plugin can run on QGIS Server.
 server=False
